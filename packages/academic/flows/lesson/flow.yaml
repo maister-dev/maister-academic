@@ -1,0 +1,361 @@
+schemaVersion: 1
+name: academic-lesson
+metadata:
+  title: "Academic — Lesson"
+  summary: "One run fills or refreshes ONE lesson of a course repository: survey what already exists → research the topic against the live web → lecture → slides → in-class lab → homework with rubric → didactic judge (bounded revise loop) → instructor review → commit. Every factual claim is anchored to a dated entry in the lesson's source ledger; the instructor gate cannot pass without one."
+  labels: [course, lesson, content, research]
+  route_when: "A lesson/topic of a course-content repository must be written or brought back up to date — lecture notes, slides, in-class lab, homework."
+  links:
+    - {
+        kind: docs,
+        title: "Package reference",
+        url: "https://github.com/maister-dev/maister-academic/blob/master/docs/academic/README.md",
+      }
+    - {
+        kind: docs,
+        title: "course.yaml contract",
+        url: "https://github.com/maister-dev/maister-academic/blob/master/docs/academic/course-yaml.md",
+      }
+runner_profiles:
+  claude-code:
+    capability_agent: claude
+    adapter: claude
+    model: claude-opus-5
+# Graph-only manifest (3.0.0) covers everything used here: typed artifacts
+# (1.2.0), output.result (1.3.0), decide routing (1.7.0), first-class sessions
+# (2.0.0), onExhaustion/resetTargets (2.1.0).
+compat:
+  engine_min: 3.0.0
+defaults:
+  session_policy: resume
+# Writing a lesson is four different jobs plus a review. Each session gets a
+# fresh context and reads its predecessor's work off disk — the judge in
+# particular has to read the lesson as a student would, which it cannot do
+# inside the context that wrote it.
+sessions:
+  research: { runner: claude-code }
+  write: { runner: claude-code }
+  practice: { runner: claude-code }
+  judge: { runner: claude-code }
+  revise: { runner: claude-code }
+  commit: { runner: claude-code }
+nodes:
+  # The two knobs that genuinely vary per run. Everything else about the course
+  # — paths, language, artifact filenames, slide format — is course.yaml's job,
+  # so it is answered once in the repository instead of once per run.
+  - id: intake
+    type: form
+    settings:
+      form_schema: ./schemas/lesson-intake.json
+    transitions:
+      success: survey
+
+  - id: survey
+    type: ai_coding
+    retry_policy:
+      attempts: 2
+      on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
+      workspace: rewind-to-node-checkpoint
+    settings:
+      skills: [academic-course-map]
+    action:
+      prompt: |
+        @skill:academic-course-map {{ task.prompt }}
+
+        Mode: {{ steps.intake.vars.mode }}.
+
+        Non-interactive run — do NOT ask the user clarifying questions; resolve
+        ambiguity with the conventions in course.yaml and record every
+        assumption in the brief.
+    output:
+      produces:
+        - id: lesson-brief
+          kind: plan
+          current: true
+    transitions:
+      success: research
+
+  - id: research
+    type: ai_coding
+    session: research
+    retry_policy:
+      attempts: 2
+      on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
+      workspace: rewind-to-node-checkpoint
+    settings:
+      skills: [academic-research]
+    action:
+      prompt: |
+        @skill:academic-research {{ task.prompt }}
+
+        Research depth: {{ steps.intake.vars.research_depth }}.
+        Mode: {{ steps.intake.vars.mode }}.
+
+        Work from the lesson brief the survey node wrote. Non-interactive run —
+        do NOT ask the user clarifying questions.
+
+        Corrections from a previous didactic review (empty on the first pass):
+        {{ review_comments }}
+    input:
+      requires:
+        - { artifact: lesson-brief, kind: plan }
+    output:
+      produces:
+        - id: lesson-sources
+          kind: generic_file
+          requiredFor: [review]
+    transitions:
+      success: lecture
+
+  - id: lecture
+    type: ai_coding
+    session: write
+    retry_policy:
+      attempts: 2
+      on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
+      workspace: rewind-to-node-checkpoint
+    settings:
+      skills: [academic-lecture]
+    action:
+      prompt: |
+        @skill:academic-lecture {{ task.prompt }}
+
+        Non-interactive run — do NOT ask the user clarifying questions.
+        Every factual claim must trace to an entry in the lesson's source
+        ledger. If the research did not establish something you need, say so in
+        the text as an open question instead of inventing it.
+    input:
+      requires:
+        - { artifact: lesson-brief, kind: plan }
+        - { artifact: lesson-sources, kind: generic_file }
+    output:
+      produces:
+        - id: lesson-lecture
+          kind: generic_file
+          requiredFor: [review]
+    transitions:
+      success: slides
+
+  - id: slides
+    type: ai_coding
+    session: write
+    retry_policy:
+      attempts: 2
+      on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
+      workspace: rewind-to-node-checkpoint
+    settings:
+      skills: [academic-slides]
+    action:
+      prompt: |
+        @skill:academic-slides
+
+        Non-interactive run — do NOT ask the user clarifying questions.
+        The deck projects the lecture; it never introduces a claim the lecture
+        does not make.
+    input:
+      requires:
+        - { artifact: lesson-lecture, kind: generic_file }
+    output:
+      produces:
+        - id: lesson-slides
+          kind: generic_file
+          requiredFor: [review]
+    transitions:
+      success: lab
+
+  - id: lab
+    type: ai_coding
+    session: practice
+    retry_policy:
+      attempts: 2
+      on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
+      workspace: rewind-to-node-checkpoint
+    settings:
+      skills: [academic-lab]
+    action:
+      prompt: |
+        @skill:academic-lab
+
+        Non-interactive run — do NOT ask the user clarifying questions.
+    input:
+      requires:
+        - { artifact: lesson-brief, kind: plan }
+        - { artifact: lesson-lecture, kind: generic_file }
+    output:
+      produces:
+        - id: lesson-lab
+          kind: generic_file
+          requiredFor: [review]
+    transitions:
+      success: homework
+
+  - id: homework
+    type: ai_coding
+    session: practice
+    retry_policy:
+      attempts: 2
+      on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
+      workspace: rewind-to-node-checkpoint
+    settings:
+      skills: [academic-homework]
+    action:
+      prompt: |
+        @skill:academic-homework
+
+        Non-interactive run — do NOT ask the user clarifying questions.
+    input:
+      requires:
+        - { artifact: lesson-brief, kind: plan }
+        - { artifact: lesson-lab, kind: generic_file }
+    output:
+      produces:
+        - id: lesson-homework
+          kind: generic_file
+          requiredFor: [review]
+    transitions:
+      success: didactics
+
+  # The judge reads the finished lesson as a student and as an examiner, and
+  # routes from its own structured output. A bounded revise loop absorbs the
+  # ordinary defects so the instructor sees a lesson, not a first draft.
+  - id: didactics
+    type: judge
+    session: judge
+    retry_policy:
+      attempts: 2
+      on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
+      workspace: rewind-to-node-checkpoint
+    settings:
+      skills: [academic-review]
+    action:
+      prompt: |
+        @skill:academic-review
+
+        Non-interactive run — do NOT ask the user clarifying questions.
+
+        End your response with a single `maister:output` block per the
+        academic-review skill's "Flow routing output" section: recommend
+        "revise" when any BLOCKING defect stands, "publish" when none does.
+        Put the concrete defects the next revision must fix — each naming the
+        file and the passage — in review_comments.
+    input:
+      requires:
+        - { artifact: lesson-lecture, kind: generic_file }
+        - { artifact: lesson-slides, kind: generic_file }
+        - { artifact: lesson-lab, kind: generic_file }
+        - { artifact: lesson-homework, kind: generic_file }
+        - { artifact: lesson-sources, kind: generic_file }
+    output:
+      result:
+        schema: ./schemas/lesson-review.json
+        required: true
+      produces:
+        - id: lesson-verdict
+          kind: ai_judgment
+    decide:
+      from: output.recommendation
+    transitions:
+      revise: revise
+      publish: review
+      exhausted: review
+    rework:
+      allowedTargets: [revise]
+      workspacePolicies: [keep]
+      maxLoops: 3
+      session_policy: new_session
+      commentsVar: review_comments
+      onExhaustion: exhausted
+
+  - id: revise
+    type: ai_coding
+    session: revise
+    retry_policy:
+      attempts: 2
+      on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
+      workspace: rewind-to-node-checkpoint
+    # The revision may touch any of the four documents plus the ledger, so every
+    # authoring convention has to be in reach — the skills are materialized for
+    # reference here, not invoked as commands.
+    settings:
+      skills:
+        [
+          academic-lecture,
+          academic-slides,
+          academic-lab,
+          academic-homework,
+          academic-research,
+        ]
+    action:
+      prompt: |
+        Revise this lesson to clear the defects listed below. Change only what a
+        listed defect requires — do not rewrite passages nobody objected to, and
+        do not restructure files that were accepted.
+
+        Defects to clear:
+        {{ review_comments }}
+
+        Each document keeps the conventions of its authoring skill
+        (academic-lecture, academic-slides, academic-lab, academic-homework);
+        the source ledger keeps the conventions of academic-research. A defect
+        that says a claim is unsupported is cleared by verifying and citing it
+        or by removing the claim — never by softening the wording.
+
+        Non-interactive run — do NOT ask the user clarifying questions.
+    transitions:
+      success: didactics
+
+  # The instructor owns the lesson. The blocking gate here is the source ledger:
+  # a course about a fast-moving field is unmaintainable the moment its claims
+  # stop being traceable, and that damage is invisible until a student hits it.
+  - id: review
+    type: human
+    pre_finish:
+      gates:
+        - id: lesson-sources-required
+          kind: artifact_required
+          mode: blocking
+          inputArtifacts: [lesson-sources]
+        - id: lesson-complete
+          kind: artifact_required
+          mode: blocking
+          inputArtifacts:
+            [lesson-lecture, lesson-slides, lesson-lab, lesson-homework]
+    finish:
+      human:
+        role: maintainer
+        decisions: [approve, rework, takeover]
+        commentsVar: review_comments
+    transitions:
+      approve: commit
+      rework: revise
+      # A takeover returns through the judge, so the instructor's own edits are
+      # held to the same didactic bar as the agent's.
+      takeover: didactics
+    rework:
+      allowedTargets: [revise]
+      workspacePolicies: [keep, rewind-to-node-checkpoint]
+      maxLoops: 3
+      session_policy: new_session
+      commentsVar: review_comments
+      # A human rework re-baselines the judge loop, so the instructor can spend
+      # a fresh budget on new guidance instead of landing post-exhaustion.
+      resetTargets: [didactics]
+
+  - id: commit
+    type: ai_coding
+    session: commit
+    retry_policy:
+      attempts: 2
+      on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
+      workspace: rewind-to-node-checkpoint
+    action:
+      prompt: |
+        Commit the lesson. One commit, conventional-commit subject, scoped to
+        this lesson — for example `docs(week-08): agent-assisted debugging`.
+        The body names what was created or refreshed and the date the sources
+        were verified.
+
+        Commit only. Non-interactive run — do NOT ask the user clarifying
+        questions and do NOT push.
+    transitions:
+      success: done

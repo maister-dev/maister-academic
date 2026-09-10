@@ -1,0 +1,29 @@
+# MAIster package manifest. Contract: docs/configuration.md (MAIster repo) —
+# flows[].id MUST equal each flow.yaml `name`; paths are package-root-relative;
+# the version pin is the git tag (academic/vX.Y.Z), never a field in this file.
+schemaVersion: 1
+name: academic
+metadata:
+  title: "Academic"
+  summary: "Course-content authoring for a git-backed course repository. academic-lesson: one run researches a lesson from the live web and writes its lecture, Marp slides, in-class lab, homework with rubric, and a dated source ledger. academic-lesson-edit: one specific minor change to a written lesson, judged for scope and ledger consistency. Course structure stays owned by the course repo via course.yaml."
+  links:
+    - {
+        kind: docs,
+        title: "Package reference",
+        url: "https://github.com/maister-dev/maister-academic/blob/master/docs/academic/README.md",
+      }
+    - {
+        kind: docs,
+        title: "course.yaml contract",
+        url: "https://github.com/maister-dev/maister-academic/blob/master/docs/academic/course-yaml.md",
+      }
+flows:
+  - { id: academic-lesson, path: flows/lesson }
+  - { id: academic-lesson-edit, path: flows/lesson-edit }
+capabilities:
+  - { id: academic-bundle, path: capability }
+# Research runs on the adapter's own web tools, so the package needs no MCP of
+# its own. To route research through a dedicated search provider instead, add a
+# template here ({id, transport, command|url, env: env:NAME refs only}) and
+# reference its id from the `research` node's settings.mcps.
+mcps: []

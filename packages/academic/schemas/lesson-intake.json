@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "fields": [
+    {
+      "name": "mode",
+      "label": "Mode",
+      "type": "enum",
+      "required": true,
+      "options": ["create", "refresh"]
+    },
+    {
+      "name": "research_depth",
+      "label": "Research depth",
+      "type": "enum",
+      "required": true,
+      "options": ["quick", "standard", "deep"]
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+schemaVersion: 1
+name: academic-lesson-edit
+metadata:
+  title: "Academic — Lesson edit"
+  summary: "Apply ONE specific, minor change to an already-written lesson — a wording fix, a replaced example, a corrected claim — without letting the lesson's invariants slip: the edit is judged in a fresh session for traceability against the source ledger and for scope, then committed. No research pass, no intake form, no instructor node on the happy path — the promotion review is the instructor's gate."
+  labels: [course, lesson, edit, maintenance]
+  route_when: "An existing lesson needs a small, specific change the task prompt fully describes. A stale lesson or a rewritten week is academic-lesson with mode: refresh instead."
+  links:
+    - {
+        kind: docs,
+        title: "Package reference",
+        url: "https://github.com/maister-dev/maister-academic/blob/master/docs/academic/README.md",
+      }
+runner_profiles:
+  claude-code:
+    capability_agent: claude
+    adapter: claude
+    model: claude-opus-5
+compat:
+  engine_min: 3.0.0
+defaults:
+  session_policy: resume
+# Only the judge leaves the default session: an edit is small enough to keep in
+# one context, but the reviewer of that edit must not be the context that made it.
+sessions:
+  judge: { runner: claude-code }
+nodes:
+  - id: edit
+    type: ai_coding
+    retry_policy:
+      attempts: 2
+      on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
+      workspace: rewind-to-node-checkpoint
+    # academic-edit is invoked; the authoring skills are materialized for
+    # reference, so a touched lab or deck keeps its own conventions, and
+    # academic-research supplies the ledger format when a claim moves.
+    settings:
+      skills:
+        [
+          academic-edit,
+          academic-lecture,
+          academic-slides,
+          academic-lab,
+          academic-homework,
+          academic-research,
+        ]
+    action:
+      prompt: |
+        @skill:academic-edit {{ task.prompt }}
+
+        Non-interactive run — do NOT ask the user clarifying questions. If the
+        request is ambiguous about WHICH lesson or WHICH passage, stop and
+        report the candidates instead of guessing.
+
+        Defects from the previous check (empty on the first pass):
+        {{ check_comments }}
+    output:
+      produces:
+        - id: edit-diff
+          kind: diff
+          requiredFor: [review, merge]
+    transitions:
+      success: check
+
+  - id: check
+    type: judge
+    session: judge
+    retry_policy:
+      attempts: 2
+      on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
+      workspace: rewind-to-node-checkpoint
+    settings:
+      skills: [academic-review]
+    action:
+      prompt: |
+        @skill:academic-review
+
+        Scoped review — judge the CHANGE, per the skill's "Scoped review"
+        section: the passages the diff touches, the ledger entries they depend
+        on, and nothing the diff left alone.
+
+        The request the edit was supposed to satisfy:
+        {{ task.prompt }}
+
+        Non-interactive run — do NOT ask the user clarifying questions.
+
+        End your response with a single `maister:output` block: "revise" when
+        any BLOCKING defect stands in the change, "publish" when none does.
+        Each review_comments line names the file and the passage.
+    input:
+      requires:
+        - { artifact: edit-diff, kind: diff }
+    output:
+      result:
+        schema: ./schemas/lesson-review.json
+        required: true
+      produces:
+        - id: edit-verdict
+          kind: ai_judgment
+    decide:
+      from: output.recommendation
+    transitions:
+      publish: commit
+      revise: edit
+      exhausted: escalate
+    rework:
+      allowedTargets: [edit]
+      workspacePolicies: [keep]
+      maxLoops: 2
+      session_policy: new_session
+      commentsVar: check_comments
+      onExhaustion: exhausted
+
+  # Reached ONLY through exhaustion. An edit the judge still rejects after two
+  # rounds is one a human has to redirect; its only decision restarts the loop
+  # with a fresh budget. Giving up is the run-level abandon.
+  - id: escalate
+    type: human
+    pre_finish:
+      gates:
+        - id: edit-diff-required
+          kind: artifact_required
+          mode: blocking
+          inputArtifacts: [edit-diff]
+    finish:
+      human:
+        role: maintainer
+        decisions: [rework]
+        commentsVar: check_comments
+    transitions:
+      rework: edit
+    rework:
+      allowedTargets: [edit]
+      workspacePolicies: [keep, rewind-to-node-checkpoint]
+      maxLoops: 2
+      session_policy: new_session
+      commentsVar: check_comments
+      resetTargets: [check]
+
+  - id: commit
+    type: ai_coding
+    retry_policy:
+      attempts: 2
+      on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
+      workspace: rewind-to-node-checkpoint
+    action:
+      prompt: |
+        Commit the edit. One commit, conventional-commit subject scoped to the
+        lesson and naming the change — for example
+        `docs(week-03): replace the export example in the lab`. The body states
+        what ledger action the edit took (none / updated <id> / added <id>).
+
+        Commit only. Non-interactive run — do NOT ask the user clarifying
+        questions and do NOT push.
+    transitions:
+      success: done

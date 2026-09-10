@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "fields": [
+    {
+      "name": "recommendation",
+      "label": "Didactic review recommendation",
+      "type": "enum",
+      "required": true,
+      "options": ["revise", "publish"]
+    },
+    {
+      "name": "review_comments",
+      "label": "Concrete defects the next revision must fix",
+      "type": "string",
+      "required": false
+    }
+  ]
+}

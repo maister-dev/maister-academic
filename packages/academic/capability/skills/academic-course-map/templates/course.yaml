@@ -1,0 +1,58 @@
+# Course conventions. Owned by the course repository — the academic package
+# reads this file and hardcodes none of it.
+# Contract: https://github.com/maister-dev/maister-academic/blob/master/docs/academic/course-yaml.md
+schemaVersion: 1
+
+course:
+  title: "Course title"
+  # Language the materials are WRITTEN in (BCP-47 or a bare code).
+  language: ru
+  # Language technical terms stay in, when it differs from the prose language.
+  # Omit when terms are written in the prose language.
+  terminology: en
+
+layout:
+  # Directory holding the lessons.
+  lessons: weeks
+  # Lesson directory name. {number} is zero-padded to numberWidth; {slug} is
+  # the lesson's kebab-case slug.
+  lessonDir: "{number}-{slug}"
+  numberWidth: 2
+  # Programme of the course — the source of truth for what each lesson covers.
+  syllabus: SYLLABUS.md
+  # Optional: learning-outcome register.
+  outcomes: curriculum/outcomes.yaml
+  # Optional: per-lesson subdirectory for images and diagrams.
+  assets: assets
+
+# Filenames inside one lesson directory. Drop an entry to disable that artifact.
+artifacts:
+  brief: brief.md
+  lecture: lecture.md
+  slides: slides.md
+  lab: lab.md
+  homework: homework.md
+  sources: sources.yaml
+
+lesson:
+  durationMinutes: 90
+  # Optional: minutes per part of a session. Calibrates lecture length, slide
+  # count, and lab timeboxes.
+  rhythm:
+    theory: 20
+    demo: 20
+    lab: 40
+    debrief: 10
+  # Expected self-study hours per homework, [min, max].
+  homeworkHours: [2, 4]
+
+slides:
+  # marp — Markdown deck with Marp frontmatter and `---` slide separators.
+  # plain — structured Markdown, no deck tooling.
+  format: marp
+  theme: default
+
+sources:
+  # A ledger entry older than this is stale and must be re-verified on refresh.
+  maxAgeDays: 180
+  requireAccessDate: true
