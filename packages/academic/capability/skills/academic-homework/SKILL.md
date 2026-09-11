@@ -14,6 +14,21 @@ instructor sees whether it was. Two things decide whether it works: the size of
 the deliverable, and whether the rubric can be applied by someone who was not
 there.
 
+## The file you own
+
+You write **the homework document** and nothing else in the lesson directory.
+
+This is not tidiness. Every other document has its own step with its own skill
+materialized; a document written here is written without those rules and gets
+overwritten later, so the work is discarded and the tokens are spent twice.
+Measured on a real run: the research step, given a brief that described the
+whole lesson, wrote the lecture, the deck, the lab and the homework, and
+rewrote the brief — none of it under the skill that governs those documents,
+all of it replaced by the steps that own them.
+
+If something outside your file looks wrong, say so in your report. Do not fix
+it here.
+
 ## Inputs
 
 The brief (**Practice shape** and its constraints), the lab — homework extends

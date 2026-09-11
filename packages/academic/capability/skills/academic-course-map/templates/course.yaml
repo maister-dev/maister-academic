@@ -5,11 +5,20 @@ schemaVersion: 1
 
 course:
   title: "Course title"
-  # Language the materials are WRITTEN in (BCP-47 or a bare code).
-  language: ru
-  # Language technical terms stay in, when it differs from the prose language.
-  # Omit when terms are written in the prose language.
-  terminology: en
+  # Three roles, because they genuinely differ. Measured: with a single
+  # `language` key and English section names in the package templates, agents
+  # satisfied both instructions at once and produced documents with half the
+  # headings in one language and half in the other.
+  language:
+    # The language the body text is written in.
+    prose: ru
+    # The language technical terms stay in. Omit to follow `prose`.
+    terminology: en
+    # The language of structural words — section headings, table captions,
+    # checklist labels. Many Russian technical courses deliberately keep these
+    # in English; that is a decision for the course, not a side effect of a
+    # template. Omit to follow `prose`.
+    headings: ru
 
 layout:
   # Directory holding the lessons.
@@ -46,13 +55,43 @@ lesson:
   # Expected self-study hours per homework, [min, max].
   homeworkHours: [2, 4]
 
+  # Text budgets are DERIVED: minutes from `rhythm` times the density below.
+  # Everything here is optional — the package ships these defaults, and they
+  # were measured on real output rather than guessed. Override only to
+  # disagree. Stating a word count directly in a skill is what broke when this
+  # course moved from 16 weeks to 11: the number was written for a 20-minute
+  # theory slot and silently outlived it.
+  density:
+    theory: 40 # words per minute of `rhythm.theory`
+    demo: 20 # words per minute of `rhythm.demo`
+    lab: 12 # words per minute of `rhythm.lab`
+  # A brief is read by every later step, so its size is charged to the whole
+  # graph, not to one document.
+  briefMaxWords: 600
+  # Accepted deviation from a derived budget, either way. The didactic review
+  # reports anything outside it.
+  tolerance: 0.3
+
 slides:
   # marp — Markdown deck with Marp frontmatter and `---` slide separators.
   # plain — structured Markdown, no deck tooling.
   format: marp
   theme: default
+  # Slides per minute of `rhythm.theory`.
+  perMinute: 1
+  # Words in a slide BODY, excluding speaker notes. A line limit alone does not
+  # hold: measured 53 of 53 slides inside a six-line rule at 41 words each —
+  # six sentence-length lines are a wall of text that passes every check.
+  maxWordsPerSlide: 25
 
 sources:
   # A ledger entry older than this is stale and must be re-verified on refresh.
   maxAgeDays: 180
   requireAccessDate: true
+  # Require a verbatim quote under every supported claim. A URL rots; a
+  # sentence does not. Measured: a ledger URL already returned 404 while the
+  # claim it supported was still correct, leaving nothing to re-check against.
+  requireQuote: true
+  # Optional archive snapshot URL per source. Off by default — the quote does
+  # most of the work at a fraction of the effort.
+  requireArchive: false

@@ -19,6 +19,21 @@ cost of the other:
 
 Write for the second reader. Add what the first one needs as its own sections.
 
+## The file you own
+
+You write **the lecture document** and nothing else in the lesson directory.
+
+This is not tidiness. Every other document has its own step with its own skill
+materialized; a document written here is written without those rules and gets
+overwritten later, so the work is discarded and the tokens are spent twice.
+Measured on a real run: the research step, given a brief that described the
+whole lesson, wrote the lecture, the deck, the lab and the homework, and
+rewrote the brief — none of it under the skill that governs those documents,
+all of it replaced by the steps that own them.
+
+If something outside your file looks wrong, say so in your report. Do not fix
+it here.
+
 ## Inputs
 
 The lesson brief (scope, out-of-scope, already-established, owed-to-next) and
@@ -94,10 +109,17 @@ surprised in production.
 write and nearly worthless. Explain how one thing works and the categories
 become derivable.
 
-**Calibrate the length.** Theory that must run in 20 minutes is roughly 1200 to
-1800 words of notes once the case and demo are excluded. Overrun does not get
-compressed in the room — it gets truncated, and the last section is always the
-one you cared about.
+**Compute the length, do not recall it.** The budget is
+`lesson.rhythm.theory x lesson.density.theory` words for everything except the
+worked case and the demo, and `rhythm.demo x density.demo` for the demo
+section, both from `course.yaml`; `lesson.tolerance` is how far either may
+drift. A 60-minute theory block at the default density is about 2400 words.
+
+Never carry a word count in your head: this rule used to name one, written for
+a 20-minute slot, and it silently outlived the schedule it was written for when
+the course moved to 60-minute theory. Overrun does not get compressed in the
+room — it gets truncated, and the last section is always the one you cared
+about.
 
 **Terminology.** Use the course language for prose and keep technical terms in
 the terminology language from `course.yaml`. Introduce each term once with both

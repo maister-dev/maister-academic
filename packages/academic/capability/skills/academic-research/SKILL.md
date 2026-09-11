@@ -23,6 +23,21 @@ Research the volatile layer. Write down what you verified and when. That record
 is what makes the course maintainable; without it, nobody can tell a claim that
 was checked last week from one that was checked two years ago.
 
+## The file you own
+
+You write **the source ledger (`sources.yaml`)** and nothing else in the lesson directory.
+
+This is not tidiness. Every other document has its own step with its own skill
+materialized; a document written here is written without those rules and gets
+overwritten later, so the work is discarded and the tokens are spent twice.
+Measured on a real run: the research step, given a brief that described the
+whole lesson, wrote the lecture, the deck, the lab and the homework, and
+rewrote the brief — none of it under the skill that governs those documents,
+all of it replaced by the steps that own them.
+
+If something outside your file looks wrong, say so in your report. Do not fix
+it here.
+
 ## 1. Turn the brief into questions
 
 Take the **Research targets** section of the lesson brief and restate each as a
@@ -89,8 +104,10 @@ sources:
     version: "2025-06-18"
     accessed: 2026-09-10
     supports:
-      - "MCP servers expose three primitives: tools, resources, prompts"
-      - "Transport is defined separately from the primitive model"
+      - claim: "MCP servers expose three primitives: tools, resources, prompts"
+        quote: "A server exposes three kinds of feature: tools, resources, and prompts."
+      - claim: "Transport is defined separately from the primitive model"
+        quote: "Transports are specified independently of the feature model."
     notes: "Section 'Server features' is the load-bearing part for this lesson."
 open_questions:
   - "Whether A2A message framing is stable enough to teach beyond concept level."
@@ -104,6 +121,12 @@ Rules the ledger has to hold:
 - **Every volatile claim in the lesson appears in exactly one `supports` list.**
   This is what the didactic review checks. A claim with no entry must be cut or
   verified, never softened into vagueness to survive review.
+- **A verbatim `quote` under every claim**, when `sources.requireQuote` is on.
+  One or two sentences, copied exactly from the source, in the source's own
+  language. A URL rots — measured: a ledger link returned 404 while the claim it
+  supported was still correct, leaving nothing to re-check against. A sentence
+  survives a redesign, a version bump and a deletion, and a year later it shows
+  what was actually verified rather than only that something was.
 - **`accessed` is the date you actually opened it.** Never copy it forward.
 - **`open_questions` is not a failure.** Recording that something could not be
   established is more useful than a confident sentence nobody can check.

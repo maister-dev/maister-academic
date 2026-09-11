@@ -13,6 +13,21 @@ You are writing into a course repository you did not design. This skill settles
 where things go and what the lesson is allowed to say, so every step after it
 writes instead of guessing.
 
+## The file you own
+
+You write **the lesson brief (and `course.yaml`, when it is missing)** and nothing else in the lesson directory.
+
+This is not tidiness. Every other document has its own step with its own skill
+materialized; a document written here is written without those rules and gets
+overwritten later, so the work is discarded and the tokens are spent twice.
+Measured on a real run: the research step, given a brief that described the
+whole lesson, wrote the lecture, the deck, the lab and the homework, and
+rewrote the brief — none of it under the skill that governs those documents,
+all of it replaced by the steps that own them.
+
+If something outside your file looks wrong, say so in your report. Do not fix
+it here.
+
 ## 1. Load the conventions
 
 Read `course.yaml` at the repository root. It is the only source of truth for
@@ -88,8 +103,19 @@ that no lab or homework exercises is an outcome the course only claims.
 
 ## 6. Write the brief
 
-Write it to the `brief` artifact path from `course.yaml`, in the course
-language, with this shape:
+Write it to the `brief` artifact path from `course.yaml`, with this shape.
+
+**Stay under `lesson.briefMaxWords`** (600 by default). Every later step reads
+this document, so its size is charged to the whole graph rather than to one
+file. Measured on a real run, an unbounded brief reached 1899 words and was
+carried into five subsequent contexts. Cut research notes and reasoning; keep
+decisions.
+
+**Language.** Body text in `course.language.prose`, technical terms in
+`course.language.terminology`, section headings in `course.language.headings`.
+The headings below are written in English only as placeholders — translate them
+into the headings language. Copying them verbatim into a Russian document is
+the exact defect this split exists to prevent, and it was measured twice.
 
 ```markdown
 ---

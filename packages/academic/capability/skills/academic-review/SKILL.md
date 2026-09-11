@@ -25,7 +25,10 @@ Run all of them. Each finding names the file and the passage.
 **1. Traceability — BLOCKING.** Every volatile claim in the lecture and the deck
 — a version, a default, a limit, a capability, who shipped what — is covered by
 a `supports` entry in `sources.yaml`. Sample at least five claims and check them
-against the ledger text, not against your own knowledge. A claim you believe to
+against the ledger text, not against your own knowledge. When
+`sources.requireQuote` is on, a `supports` entry without a verbatim `quote` is
+itself blocking: the URL may already be dead, and then nothing is left to
+re-check the claim against. A claim you believe to
 be true but that the ledger does not carry is still a blocking defect: the
 course cannot be maintained on your memory.
 
@@ -68,6 +71,25 @@ extra sentence as blocking buries the two defects that are:
 
 The question to ask is not "is this sentence in the lecture?" but "would a
 student be misled, or would the instructor be unable to defend it?" 
+
+**7a. Text budget — ADVISORY, BLOCKING at double.** Compute each budget from
+`course.yaml` — theory prose is `rhythm.theory x density.theory`, the demo
+section `rhythm.demo x density.demo`, the lab `rhythm.lab x density.lab`, the
+brief `briefMaxWords`, a slide body `slides.maxWordsPerSlide`, the deck
+`rhythm.theory x slides.perMinute` slides. Report anything outside
+`lesson.tolerance`. Blocking only past double the budget: that is no longer a
+drifting document, it is one that cannot be delivered in its slot.
+
+Count slide bodies WITHOUT speaker notes, and check the average rather than the
+maximum — measured, a deck kept every slide inside a six-line rule while
+averaging 41 words per slide. A line count passing is not the same as a slide
+being readable.
+
+**7b. Heading language — BLOCKING when mixed.** Section headings must all be in
+`course.language.headings`, body prose in `course.language.prose`, technical
+terms in `course.language.terminology`. A document with half its headings in
+one language and half in another is the measured failure mode of copying a
+template verbatim; it reads as unfinished and it was found twice on one run.
 
 **8. Terminology — ADVISORY, BLOCKING when it confuses.** Terms are introduced
 once and used consistently. Alternating between a translated term and its

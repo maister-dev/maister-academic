@@ -14,6 +14,21 @@ argument; the deck carries the room's attention through it. Anything a student
 must be able to re-read belongs in the lecture, and putting it on a slide
 instead is how lectures end up unreadable and slides end up unwatchable.
 
+## The file you own
+
+You write **the slide deck** and nothing else in the lesson directory.
+
+This is not tidiness. Every other document has its own step with its own skill
+materialized; a document written here is written without those rules and gets
+overwritten later, so the work is discarded and the tokens are spent twice.
+Measured on a real run: the research step, given a brief that described the
+whole lesson, wrote the lecture, the deck, the lab and the homework, and
+rewrote the brief — none of it under the skill that governs those documents,
+all of it replaced by the steps that own them.
+
+If something outside your file looks wrong, say so in your report. Do not fix
+it here.
+
 ## Inputs
 
 The lecture document, and `course.yaml` for `slides.format`, `slides.theme`,
@@ -23,10 +38,11 @@ that belongs on a slide and not in the lecture is a defect in the lecture.
 
 ## Size
 
-Roughly one slide per minute of the theory block, plus a section divider per
-major move, plus one closing slide. A 20-minute theory block lands near 18–22
-slides. A deck at double that will be rushed in the room, and the material that
-gets rushed is always the end.
+`slides.perMinute` slides per minute of `lesson.rhythm.theory` — one per minute
+by default — plus a section divider per major move and one closing slide. A
+deck at double that will be rushed in the room, and the material that gets
+rushed is always the end. Take both numbers from `course.yaml`; do not assume a
+slot length.
 
 ## Marp mechanics
 
@@ -76,8 +92,12 @@ separators, keep every other rule, and use `##` per slide-equivalent section.
 the title is a noun phrase — "Agent loop" — the slide has no claim and will be
 narrated instead of read.
 
-**Six lines, fragments.** A slide the audience reads is a slide during which
-nobody is listening.
+**Six lines AND a word budget.** At most six lines, and at most
+`slides.maxWordsPerSlide` words in the body — 25 by default, speaker notes
+excluded. The line limit alone does not hold: measured on a real deck, 53
+slides out of 53 obeyed it while averaging 41 words each, because six
+sentence-length lines pass a line count and are still a wall of text. A slide
+the audience reads is a slide during which nobody is listening.
 
 **No wall of code.** Show the three lines that matter. The full listing lives in
 the lecture or the repository.

@@ -13,6 +13,21 @@ The lab runs once, in a fixed slot, on hardware you have never seen, with an
 instructor who cannot help thirty people at the same time. Every rule here comes
 from that.
 
+## The file you own
+
+You write **the in-class lab document** and nothing else in the lesson directory.
+
+This is not tidiness. Every other document has its own step with its own skill
+materialized; a document written here is written without those rules and gets
+overwritten later, so the work is discarded and the tokens are spent twice.
+Measured on a real run: the research step, given a brief that described the
+whole lesson, wrote the lecture, the deck, the lab and the homework, and
+rewrote the brief — none of it under the skill that governs those documents,
+all of it replaced by the steps that own them.
+
+If something outside your file looks wrong, say so in your report. Do not fix
+it here.
+
 ## Inputs
 
 The brief (especially **Practice shape** — whether students work on their own

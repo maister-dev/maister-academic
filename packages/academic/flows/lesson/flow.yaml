@@ -16,11 +16,15 @@ metadata:
         title: "course.yaml contract",
         url: "https://github.com/maister-dev/maister-academic/blob/master/docs/academic/course-yaml.md",
       }
+# A profile KEY is the runner TARGET: it is matched against the platform's
+# registered runner ids first, and the body below applies only when the platform
+# has no runner by that id (import-time remap). So on an instance that registers
+# `claude-code`, THAT runner's model wins and `model:` here is inert — declaring
+# one would read like a pin it is not. Left unset deliberately.
 runner_profiles:
   claude-code:
     capability_agent: claude
     adapter: claude
-    model: claude-opus-5
 # Graph-only manifest (3.0.0) covers everything used here: typed artifacts
 # (1.2.0), output.result (1.3.0), decide routing (1.7.0), first-class sessions
 # (2.0.0), onExhaustion/resetTargets (2.1.0).
@@ -28,14 +32,24 @@ compat:
   engine_min: 3.0.0
 defaults:
   session_policy: resume
-# Writing a lesson is four different jobs plus a review. Each session gets a
-# fresh context and reads its predecessor's work off disk — the judge in
-# particular has to read the lesson as a student would, which it cannot do
-# inside the context that wrote it.
+# One session per DOCUMENT, not per phase. Each starts with a fresh context and
+# reads its predecessor's work off disk — the judge above all, which has to read
+# the lesson as a student would and cannot do that inside the context that wrote
+# it.
+#
+# Pairing documents in one session looked cheaper and was wrong: `lecture` and
+# `slides` shared a `write` session, and because the flow resumes a session by
+# default, the deck node re-entered a context already holding a ~4000-word
+# lecture. The adapter refused the prompt outright — "Prompt is too long" — and
+# both retries failed identically, because the cause is deterministic. A lesson's
+# documents are large enough that each one needs its own context.
 sessions:
+  survey: { runner: claude-code }
   research: { runner: claude-code }
-  write: { runner: claude-code }
-  practice: { runner: claude-code }
+  lecture: { runner: claude-code }
+  slides: { runner: claude-code }
+  lab: { runner: claude-code }
+  homework: { runner: claude-code }
   judge: { runner: claude-code }
   revise: { runner: claude-code }
   commit: { runner: claude-code }
@@ -52,11 +66,14 @@ nodes:
 
   - id: survey
     type: ai_coding
+    session: survey
     retry_policy:
       attempts: 2
       on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
       workspace: rewind-to-node-checkpoint
     settings:
+      limits:
+        maxDurationMinutes: 20
       skills: [academic-course-map]
     action:
       prompt: |
@@ -83,6 +100,8 @@ nodes:
       on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
       workspace: rewind-to-node-checkpoint
     settings:
+      limits:
+        maxDurationMinutes: 45
       skills: [academic-research]
     action:
       prompt: |
@@ -109,12 +128,14 @@ nodes:
 
   - id: lecture
     type: ai_coding
-    session: write
+    session: lecture
     retry_policy:
       attempts: 2
       on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
       workspace: rewind-to-node-checkpoint
     settings:
+      limits:
+        maxDurationMinutes: 30
       skills: [academic-lecture]
     action:
       prompt: |
@@ -138,12 +159,14 @@ nodes:
 
   - id: slides
     type: ai_coding
-    session: write
+    session: slides
     retry_policy:
       attempts: 2
       on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
       workspace: rewind-to-node-checkpoint
     settings:
+      limits:
+        maxDurationMinutes: 25
       skills: [academic-slides]
     action:
       prompt: |
@@ -165,12 +188,14 @@ nodes:
 
   - id: lab
     type: ai_coding
-    session: practice
+    session: lab
     retry_policy:
       attempts: 2
       on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
       workspace: rewind-to-node-checkpoint
     settings:
+      limits:
+        maxDurationMinutes: 25
       skills: [academic-lab]
     action:
       prompt: |
@@ -191,12 +216,14 @@ nodes:
 
   - id: homework
     type: ai_coding
-    session: practice
+    session: homework
     retry_policy:
       attempts: 2
       on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
       workspace: rewind-to-node-checkpoint
     settings:
+      limits:
+        maxDurationMinutes: 25
       skills: [academic-homework]
     action:
       prompt: |
@@ -226,6 +253,8 @@ nodes:
       on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]
       workspace: rewind-to-node-checkpoint
     settings:
+      limits:
+        maxDurationMinutes: 30
       skills: [academic-review]
     action:
       prompt: |
@@ -277,6 +306,8 @@ nodes:
     # authoring convention has to be in reach — the skills are materialized for
     # reference here, not invoked as commands.
     settings:
+      limits:
+        maxDurationMinutes: 30
       skills:
         [
           academic-lecture,
@@ -344,6 +375,9 @@ nodes:
   - id: commit
     type: ai_coding
     session: commit
+    settings:
+      limits:
+        maxDurationMinutes: 15
     retry_policy:
       attempts: 2
       on_errors: [SPAWN, EXECUTOR_UNAVAILABLE, CHECKPOINT, ACP_PROTOCOL]

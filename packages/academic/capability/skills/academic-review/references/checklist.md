@@ -6,11 +6,14 @@ Ten checks, with the severity each carries by default.
 | - | ----- | ------- |
 | 1 | Every volatile claim has a `supports` entry in the ledger | BLOCKING |
 | 2 | No ledger entry past `maxAgeDays`; every entry dated | BLOCKING when the claim moves |
+| 2a | Every supported claim carries a verbatim quote, when required | BLOCKING |
 | 3 | Nothing re-teaches an established or excluded topic | BLOCKING |
 | 4 | Every assigned outcome is exercised by lab or homework | BLOCKING |
 | 5 | Lab fits its slot; observables, checkpoint, catch-up path | BLOCKING |
 | 6 | Rubric criteria observable; weights sum to 100 | BLOCKING |
 | 7 | Deck contradicts the lecture, or carries an unsupported volatile claim | BLOCKING |
+| 7a | Text budgets derived from course.yaml, within `tolerance` | ADVISORY, BLOCKING past double |
+| 7b | Headings, prose and terms each in their declared language | BLOCKING when mixed |
 | 7a | Deck merely elaborates beyond the lecture (gloss, example, implied consequence) | ADVISORY |
 | 8 | Terminology introduced once, used consistently | ADVISORY |
 | 9 | Recommended techniques carry their failure modes | BLOCKING |

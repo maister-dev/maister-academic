@@ -97,6 +97,31 @@ every gate and leaves the instructor with two copies of one lesson.
 Pinning the slug in the syllabus (a `03-evals` heading anchor, or a per-lesson
 front-matter key) removes the guess entirely. It is not required.
 
+### `language`, `density`, budgets
+
+Three keys carry the lessons of the first real run, and all three exist because
+a value that lives in a skill outlives the schedule it was written for.
+
+`course.language` splits into `prose`, `terminology` and `headings`. With a
+single language key and English section names in the package templates, an
+agent satisfies both instructions at once and produces a document with half its
+headings in each language — measured twice on one run. Many Russian technical
+courses also keep structural words in English deliberately; that should be the
+course's decision, not a template's side effect.
+
+`lesson.density` derives text budgets from minutes: `theory`, `demo` and `lab`
+words per minute of the matching `rhythm` entry, with `lesson.tolerance` as the
+accepted drift and `lesson.briefMaxWords` capping the one document every later
+step reads. The package ships defaults measured on real output — 40 / 20 / 12 —
+so a course that agrees writes nothing. The previous design stated a word count
+inside the lecture skill, written for a 20-minute theory slot, and it silently
+survived the move to a 60-minute one.
+
+`slides.maxWordsPerSlide` bounds a slide BODY, speaker notes excluded. A line
+limit alone does not hold: 53 slides out of 53 obeyed a six-line rule while
+averaging 41 words, because six sentence-length lines pass a line count and are
+still a wall of text.
+
 ### `artifacts`
 
 Filenames inside one lesson directory. **Dropping an entry disables that
