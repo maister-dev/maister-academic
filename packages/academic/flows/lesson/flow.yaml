@@ -178,6 +178,18 @@ nodes:
     input:
       requires:
         - { artifact: lesson-lecture, kind: generic_file }
+    # The word budget is the one deck rule an agent cannot self-check: it holds
+    # per slide, forty-odd times, and a six-line rule passes while the deck is
+    # still a wall of text (measured: 53 of 53 slides inside the line rule at 41
+    # words each). So a machine checks it, and the node cannot finish until the
+    # deck fits. The script ships inside the academic-slides skill, which this
+    # node already materializes into the worktree.
+    pre_finish:
+      gates:
+        - id: slide-density
+          kind: command_check
+          mode: blocking
+          command: "python3 .claude/skills/academic-slides/scripts/slide-density.py"
     output:
       produces:
         - id: lesson-slides

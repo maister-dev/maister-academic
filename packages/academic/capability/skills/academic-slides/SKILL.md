@@ -92,6 +92,13 @@ separators, keep every other rule, and use `##` per slide-equivalent section.
 the title is a noun phrase — "Agent loop" — the slide has no claim and will be
 narrated instead of read.
 
+**The budget is checked by a machine.** The node will not finish until
+`scripts/slide-density.py` passes: it counts every slide body, speaker notes
+excluded, and fails the deck when the average exceeds
+`slides.maxWordsPerSlide` or any single slide runs past double it. Run it
+yourself before you finish — `python3 .claude/skills/academic-slides/scripts/slide-density.py`
+from the repository root — rather than discovering the refusal at the gate.
+
 **Six lines AND a word budget.** At most six lines, and at most
 `slides.maxWordsPerSlide` words in the body — 25 by default, speaker notes
 excluded. The line limit alone does not hold: measured on a real deck, 53

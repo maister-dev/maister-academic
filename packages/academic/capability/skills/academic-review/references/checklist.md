@@ -40,6 +40,12 @@ A first draft with two or three blocking defects is normal. A first draft with
 twelve means the brief was thin, and that belongs in `review_comments` as its
 own finding.
 
+Severity decides how loudly a finding is reported. It does NOT decide whether
+the finding gets fixed: every mechanical correction — budget, heading language,
+label titles, frontmatter — routes to the revision step regardless of severity,
+because there is one right answer and no one needs to weigh it. Only judgement
+calls travel to the instructor unfixed.
+
 If your blocking list runs past five, re-read it before emitting: severity
 inflation is the failure mode this section exists to prevent, and check 7 is
 where it starts. Ask of each one whether a student would be misled or the

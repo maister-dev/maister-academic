@@ -104,9 +104,31 @@ present and consistent with what the files actually contain.
 
 ## Judgement
 
-- Any BLOCKING defect → `revise`.
-- Only advisory findings, or none → `publish`. Advisory findings still go into
-  `review_comments`; the instructor sees them at the review gate.
+The question is not "how bad is this" but **"can it be fixed without
+judgement?"**. A defect nobody has to weigh should never reach the instructor
+as homework.
+
+- **Any BLOCKING defect → `revise`.**
+- **Advisory findings that are MECHANICAL → `revise`.** Mechanical means the
+  correction is determined, not chosen: slides over the word budget, a document
+  outside its derived budget, headings in the wrong language, a slide title
+  that is a label rather than a claim, missing speaker notes, frontmatter that
+  disagrees with the file. There is one right answer and the revision step can
+  apply it.
+- **Only judgement calls left, or nothing → `publish`.** A judgement call is a
+  finding where a competent instructor could reasonably disagree with you:
+  whether a worked case is the right one, whether a topic deserves more depth,
+  whether an exclusion is correct. Those belong in `review_comments` for the
+  instructor to weigh — they are not defects to be silently "fixed".
+
+Reporting a mechanical defect instead of fixing it looks careless: the run had
+a revision step available, spent it on nothing, and handed a person work a
+machine could have done. The loop is bounded at `maxLoops`, so a stream of
+small corrections cannot run away — exhaustion escalates with whatever still
+stands.
+
+Nothing is rewritten to satisfy this. The revision step changes only the
+passages a finding names; accepted material stays as it was.
 
 Do not recommend `publish` because a revision loop already ran, and do not
 recommend `revise` for defects you cannot state concretely. If you cannot name
